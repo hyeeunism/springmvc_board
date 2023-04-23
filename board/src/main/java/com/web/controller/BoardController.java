@@ -1,5 +1,7 @@
 package com.web.controller;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -11,10 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.web.dao.ReplyService;
 import com.web.service.BoardService;
 import com.web.vo.BoardVO;
 import com.web.vo.Criteria;
 import com.web.vo.PageMaker;
+import com.web.vo.ReplyVO;
 import com.web.vo.SearchCriteria;
 
 @Controller
@@ -25,6 +29,9 @@ public class BoardController {
 	
 	@Inject
 	BoardService service;
+	
+	@Inject
+	ReplyService replyService;
 	
 	// 게시판 글 작성 화면
 	@RequestMapping(value = "/writeView", method = RequestMethod.GET)
@@ -67,6 +74,10 @@ public class BoardController {
 			
 		model.addAttribute("read", service.read(boardVO.getBno()));
 		model.addAttribute("scri", scri);
+		
+		// 댓글 조회 기능 추가
+		List<ReplyVO> replyList = replyService.readReply(boardVO.getBno());
+		model.addAttribute("replyList", replyList);
 			
 		return "board/readView";
 	}
@@ -111,6 +122,79 @@ public class BoardController {
 			
 			return "redirect:/board/list";
 		}
-
+		
+		// 댓글 작성
+		@RequestMapping(value="/replyWrite", method = RequestMethod.POST)
+		public String replyWrite(ReplyVO vo, SearchCriteria scri, RedirectAttributes rttr) throws Exception {
+			logger.info("reply Write");
+			
+			replyService.writeReply(vo);
+			
+			rttr.addAttribute("bno", vo.getBno());
+			rttr.addAttribute("page", scri.getPage());
+			rttr.addAttribute("perPageNum", scri.getPerPageNum());
+			rttr.addAttribute("searchType", scri.getSearchType());
+			rttr.addAttribute("keyword", scri.getKeyword());
+			
+			return "redirect:/board/readView;";
+		}
+		
+		// 댓글 수정 Get
+		@RequestMapping(value="/replyUpdateView", method = RequestMethod.GET)
+		public String replyUpdateView(ReplyVO vo, SearchCriteria scri, Model model) throws Exception {
+			logger.info("reply Write");
+			
+			model.addAttribute("replyUpdate", replyService.selectReply(vo.getRno()));
+			model.addAttribute("scri", scri);
+			
+			return "board/replyUpdateView";
+			
+		}
+		
+		// 댓글 수정 Post 
+		@RequestMapping(value="/replyUpdate", method = RequestMethod.POST)
+		public String replyUpdate(ReplyVO vo, SearchCriteria scri, RedirectAttributes rttr) throws Exception {
+			logger.info("reply Write");
+			
+			replyService.updateReply(vo);
+			
+			rttr.addAttribute("bno", vo.getBno());
+			rttr.addAttribute("page", scri.getPage());
+			rttr.addAttribute("perPageNum", scri.getPerPageNum());
+			rttr.addAttribute("searchType", scri.getSearchType());
+			rttr.addAttribute("keyword", scri.getKeyword());
+			
+			return "redirect:/board/readView";
+			
+		}
+		
+		// 댓글 삭제 Get
+		@RequestMapping(value="/replyDeleteView", method = RequestMethod.GET)
+		public String replyDeleteView(ReplyVO vo, SearchCriteria scri, Model model) throws Exception {
+			logger.info("reply Write");
+			
+			model.addAttribute("replyDelete", replyService.selectReply(vo.getRno()));
+			model.addAttribute("scri", scri);
+			
+			return "board/replyDeleteView";
+			
+		}
+		
+		// 댓글삭제 Post 
+		@RequestMapping(value="/replyDelete", method = RequestMethod.POST)
+		public String replyDelete(ReplyVO vo, SearchCriteria scri, RedirectAttributes rttr) throws Exception {
+			logger.info("reply Write");
+			
+			replyService.deleteReply(vo);
+			
+			rttr.addAttribute("bno", vo.getBno());
+			rttr.addAttribute("page", scri.getPage());
+			rttr.addAttribute("perPageNum", scri.getPerPageNum());
+			rttr.addAttribute("searchType", scri.getSearchType());
+			rttr.addAttribute("keyword", scri.getKeyword());
+			
+			return "redirect:/board/readView";
+			
+		}
 	
 }
