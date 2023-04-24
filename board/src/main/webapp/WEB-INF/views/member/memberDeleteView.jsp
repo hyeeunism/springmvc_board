@@ -23,24 +23,23 @@
 			$("#submit").on("click", function(){
 				if($("#userPass").val()==""){
 					alert("비밀번호를 입력해주세요.");
-					$("#userPass").focus(); // 커서 포커스 맞추기
+					$("#userPass").focus();
 					return false;
 				}
 				$.ajax({
 					url : "/member/passChk",
 					type : "POST",
-					dataType : "json",
-					data : $("#delForm").serializeArray(), // 사용자가 입력 요소에 값을 입력한 데이터의 전송 방식을 배열 객체로 변환해 반환
+					dateType : "json",
+					data : $("#delForm").serializeArray(),
 					success: function(data){
 						
-						if(data==0){
-							alert("패스워드가 틀렸습니다.");
-							return;
-						}else{
+						if(data==true){
 							if(confirm("회원탈퇴하시겠습니까?")){
 								$("#delForm").submit();
 							}
-							
+						}else{
+							alert("패스워드가 틀렸습니다.");
+							return;
 						}
 					}
 				})
