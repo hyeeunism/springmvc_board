@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.web.dao.ReplyService;
 import com.web.service.BoardService;
+import com.web.service.ReplyService;
 import com.web.vo.BoardVO;
 import com.web.vo.Criteria;
 import com.web.vo.PageMaker;

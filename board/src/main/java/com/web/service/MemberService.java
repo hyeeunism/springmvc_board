@@ -1,4 +1,4 @@
-package com.web.dao;
+package com.web.service;
 
 import com.web.vo.MemberVO;
 

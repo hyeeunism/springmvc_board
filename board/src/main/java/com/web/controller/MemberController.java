@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.web.dao.MemberService;
+import com.web.service.MemberService;
 import com.web.vo.MemberVO;
 
 @Controller

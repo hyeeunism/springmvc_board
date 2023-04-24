@@ -1,9 +1,10 @@
-package com.web.dao;
+package com.web.service;
 
 import javax.inject.Inject;
 
 import org.springframework.stereotype.Service;
 
+import com.web.dao.MemberDAO;
 import com.web.vo.MemberVO;
 
 @Service

@@ -1,117 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="boardMapper">
-
-<!-- 게시판 글 작성 -->
-<insert id="insert" parameterType="com.web.vo.BoardVO" useGeneratedKeys="true" keyProperty="bno">
-	<selectKey keyProperty="bno" resultType="int" order="BEFORE">
-		SELECT mp_board_seq.nextval FROM dual
-	</selectKey>
-	   INSERT INTO MP_BOARD(    BNO 
-	   					      , TITLE 
-	   					      , CONTENT 
-	   					      , WRITER  )
-	                 VALUES(    #{bno}
-	                 		  , #{title}
-	                 		  , #{content}
-	                 		  , #{writer}  )
+	<!-- 게시판 글 작성 -->
+	<insert id="insert" parameterType="com.web.vo.BoardVO" useGeneratedKeys="true" keyProperty="bno">
+	    <selectKey keyProperty="bno" resultType="int" order="BEFORE">
+	    	SELECT MP_BOARD_SEQ.NEXTVAL FROM DUAL
+	    </selectKey>
+	    INSERT INTO MP_BOARD(    BNO 
+	   					       , TITLE 
+	   					       , CONTENT 
+	   					       , WRITER  )
+	                  VALUES(    #{bno}
+	                 		   , #{title}
+	                 		   , #{content}
+	                 		   , #{writer}  )
    
-</insert>
-
-<!-- 게시판 글 목록 조회 -->
-<!-- 
-<select id="list" resultType="com.web.vo.BoardVO">
-		SELECT   BNO
-			   , TITLE
-			   , WRITER
-			   , REGDATE
-		  FROM MP_BOARD
-		  ORDER BY BNO DESC
-</select>
- -->
-
-<!-- 글번호 내림차순으로 정렬하는 쿼리 -->
-<!-- 
-<select id="listPage" resultType="com.web.vo.BoardVO" parameterType="com.web.vo.Criteria">
-		SELECT bno, title, content, writer, regdate
-		FROM ( SELECT bno, title, content, writer, regdate, ROW_NUMBER() OVER(ORDER BY bno DESC) AS rNum
-                    FROM mp_board 
-                   ) mp
-		WHERE rNum BETWEEN #{rowStart} AND #{rowEnd}
-		ORDER BY bno DESC
-</select>
- -->
- 
- <!-- 검색 기능 추가 -->
- <select id="listPage" resultType="com.web.vo.BoardVO" parameterType="com.web.vo.SearchCriteria">
-		SELECT bno, title, content, writer, regdate
-		FROM ( SELECT bno, title, content, writer, regdate, ROW_NUMBER() OVER(ORDER BY bno DESC) AS rNum
-                    FROM mp_board
-                    WHERE 1=1
-                    	<include refid = "search"></include> 
-                   ) mp
-		WHERE rNum BETWEEN #{rowStart} AND #{rowEnd}
-		ORDER BY bno DESC
-</select>
-
-<!-- 총 갯수 -->
-<!-- 
-<select id="listCount" resultType="int">
-	<![CDATA[
+    </insert>
+   
+	<select id="listPage" resultType="com.web.vo.BoardVO" parameterType="com.web.vo.SearchCriteria">
+		SELECT  BNO, 
+		        TITLE, 
+		        CONTENT,
+		        WRITER, 
+		        REGDATE,
+		        HIT
+		 FROM ( 
+		        SELECT BNO, 
+		               TITLE, 
+		               CONTENT, 
+		               WRITER, 
+		               REGDATE,
+		               HIT, 
+		               ROW_NUMBER() OVER(ORDER BY BNO DESC) AS RNUM
+		         FROM MP_BOARD
+		         WHERE 1=1 
+		         	<include refid="search"></include>
+		                       ) MP
+		WHERE RNUM BETWEEN #{rowStart} AND #{rowEnd}
+		ORDER BY BNO DESC
+	</select>
+	
+	<select id="listCount" parameterType="com.web.vo.SearchCriteria" resultType="int">
 		SELECT COUNT(BNO)
-		  FROM MP_BOARD
-		 WHERE BNO > 0
-	]]>
-</select>
- -->
- 
- <!-- 검색 기능 추가한 총 갯수 -->
- <select id="listCount" parameterType="com.web.vo.SearchCriteria" resultType="int">
-	SELECT COUNT(BNO)
 		   FROM MP_BOARD
 		   WHERE 1=1
 		<include refid="search"></include>	
 		   AND BNO > 0
- </select>
+	</select>
 	
 	<sql id="search">
 		<if test="searchType != null">
 			<if test="searchType == 't'.toString()">AND TITLE LIKE '%' || #{keyword} || '%'</if>
-			<if test="searchType == 'c'.toString()">AND CONTsENT LIKE '%' || #{keyword} || '%'</if>
+			<if test="searchType == 'c'.toString()">AND CONTENT LIKE '%' || #{keyword} || '%'</if>
 			<if test="searchType == 'w'.toString()">AND WRITER LIKE '%' || #{keyword} || '%'</if>
 			<if test="searchType == 'tc'.toString()">AND (TITLE LIKE '%' || #{keyword} || '%') or (CONTENT LIKE '%' || #{keyword} || '%')</if>
 		</if>
 	</sql>
-
-<!-- 게시판 글 상세 조회 -->
-<select id="read" parameterType="int" resultType="com.web.vo.BoardVO">
-		SELECT	BNO
-			  , TITLE
-			  , CONTENT
-			  , WRITER
-			  , REGDATE
-		 FROM MP_BOARD
+	
+	<select id="read" parameterType="int" resultType="com.web.vo.BoardVO">
+		SELECT   BNO
+			   , TITLE
+			   , CONTENT
+			   , WRITER
+			   , REGDATE
+		  FROM MP_BOARD
 		 WHERE BNO = #{bno}
-</select>
-
-<!-- 게시판 글 수정 -->
-<update id="update" parameterType="com.web.vo.BoardVO">
+	</select>
+	
+	<update id="update" parameterType="com.web.vo.BoardVO">
 		UPDATE MP_BOARD
 		   SET TITLE    =   #{title},
 		   	   CONTENT  =   #{content}
 		 WHERE BNO = #{bno} 
-</update>
-
-<!-- 게시판 글 삭제 -->
-<delete id="delete" parameterType="int">
+	</update>
+	
+	<delete id="delete" parameterType="int">
 		DELETE 
 		  FROM MP_BOARD
 		 WHERE BNO = #{bno}
-</delete>
-
-<!-- 파일 첨부 -->
-	<insert id="insertFile" parameterType="hashMap">
+	</delete>
+   
+   <!-- 첨부파일 업로드 -->
+    <insert id="insertFile" parameterType="hashMap">
 		INSERT INTO MP_FILE(
 			FILE_NO,
 			BNO,
@@ -127,8 +99,8 @@
 		)
     </insert>
     
- <!-- 첨부파일 조회 -->
- 	<select id="selectFileList" parameterType="int" resultType="hashMap">
+    <!-- 첨부파일 조회 -->
+    <select id="selectFileList" parameterType="int" resultType="hashMap">
     	SELECT FILE_NO,
     		   ORG_FILE_NAME,
     		   ROUND(FILE_SIZE/1024,1) AS FILE_SIZE,
@@ -138,20 +110,27 @@
     	   AND DEL_GB = 'N'
     	 ORDER BY FILE_NO ASC
     </select>
- 	
- <!-- 첨부파일 다운로드 -->
-   <select id="selectFileInfo" parameterType="hashMap" resultType="hashMap">
+    
+    <!-- 첨부파일 다운 -->
+    <select id="selectFileInfo" parameterType="hashMap" resultType="hashMap">
     	SELECT 
     		STORED_FILE_NAME,
     		ORG_FILE_NAME
     	FROM MP_FILE
     	WHERE FILE_NO = #{FILE_NO}
     </select>
-	
-	<update id="updateFile" parameterType="hashMap">
-    	UPDATE MP_FILE 
-    	SET DEL_GB = 'Y'
+    
+    <!-- 첨부파일 수정 -->
+    <update id="updateFile" parameterType="hashMap">
+    	UPDATE MP_FILE SET
+    	DEL_GB = 'Y'
     	WHERE FILE_NO = #{FILE_NO}
     </update>
-
+    
+    <!-- 게시판 조회수 -->
+    <update id="boardHit" parameterType="int">
+    	UPDATE MP_BOARD SET
+    	HIT = HIT+1
+    	WHERE BNO = #{bno}
+    </update>
 </mapper>
