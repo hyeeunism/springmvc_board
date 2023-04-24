@@ -6,6 +6,7 @@ import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -24,6 +25,9 @@ public class MemberController {
 	@Inject
 	MemberService service;
 	
+	@Inject
+	BCryptPasswordEncoder pwdEncoder;
+	
 	// 회원가입폼으로 이동 GET | 회원가입 버튼 눌렀을 때 POST
 
 	// 회원가입 Get
@@ -36,25 +40,38 @@ public class MemberController {
 	@RequestMapping(value = "/register", method = RequestMethod.POST)
 	public String postRegister(MemberVO vo) throws Exception {
 		logger.info("post register");
-		
-		service.register(vo);
-		
+		int result = service.idChk(vo);
+		try {
+			if(result == 1) {
+				return "/member/register";
+			} else if (result == 0) {
+				String inputPass = vo.getUserPass();
+				String pwd = pwdEncoder.encode(inputPass);
+				vo.setUserPass(pwd);
+				
+				service.register(vo);
+			}
+			// 존재 -> 다시 회원가입 페이지 / 존재 X -> register
+		} catch (Exception e) {
+			throw new RuntimeException();
+		}
 		return "redirect:/";
 	}
 	
 	// 로그인
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	public String login(MemberVO vo, HttpServletRequest req, RedirectAttributes rttr) throws Exception {
+	public String login(MemberVO vo, HttpSession session, RedirectAttributes rttr) throws Exception {
 		logger.info("post login");
 		
-		HttpSession session = req.getSession();
-		MemberVO login = service.login(vo);
+		session.getAttribute("member");
+		MemberVO login = service.login(vo); // 로그인 서비스 실행해서 login.getUerPass 가져옴
+		boolean pwdMatch = pwdEncoder.matches(vo.getUserPass(), login.getUserPass());
 		
-		if ( login == null) {
+		if ( login != null && pwdMatch == true) {
+			session.setAttribute("member", login);
+		} else {
 			session.setAttribute("member", null);
 			rttr.addFlashAttribute("msg", false);
-		} else {
-			session.setAttribute("member", login);
 		}
 		return "redirect:/";
 		
@@ -94,19 +111,10 @@ public class MemberController {
 	// 회원 탈퇴 Post
 	@RequestMapping(value="/memberDelete", method=RequestMethod.POST)
 	public String memberDelete(MemberVO vo, HttpSession session, RedirectAttributes rttr) throws Exception {
-		// 세션에서 member 객체 가져와서 member 변수에 넣어주기
-		MemberVO member = (MemberVO) session.getAttribute("member");
-		// 세션에 있는 비번
-		String sessionPass = member.getUserPass();
-		// vo로 들어오는 비번
-		String voPass = vo.getUserPass();
-		
-		if (!(sessionPass.equals(voPass))) {
-			rttr.addFlashAttribute("msg", false);
-			return "redirect:/member/memberDeleteView";
-		}
+
 		service.memberDelete(vo);
 		session.invalidate();
+
 		return "redirect:/";		
 	}
 	
@@ -115,6 +123,14 @@ public class MemberController {
 	@RequestMapping(value="/passChk", method = RequestMethod.POST)
 	public int passChk(MemberVO vo) throws Exception {
 		int result = service.passChk(vo);
+		return result;
+	}
+	
+	// 아이디 중복 체크(회원가입시)
+	@ResponseBody
+	@RequestMapping(value="/idChk", method=RequestMethod.POST)
+	public int idChk(MemberVO vo) throws Exception {
+		int result = service.idChk(vo);
 		return result;
 	}
 

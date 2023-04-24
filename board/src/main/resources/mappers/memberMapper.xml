@@ -18,14 +18,15 @@
 		SELECT userid, userpass, username
 		FROM mp_member
 		WHERE userid = #{userId}
-		AND userpass = #{userPass}
+		<!-- AND userpass = #{userPass} -->
 	</select>
 	
 <!-- 회원정보 수정 -->	
 	<update id="memberUpdate">
 	UPDATE mp_member
-	SET userpass = #{userPass}
-		, username = #{userName}
+	SET 
+	<!-- userpass = #{userPass} -->
+		username = #{userName}
 	WHERE userid = #{userId}
 	</update>
 	
@@ -33,7 +34,7 @@
 	<delete id="memberDelete">
 	DELETE FROM mp_member
 	WHERE userid = #{userId}
-	AND userpass = #{userPass}
+	<!-- AND userpass = #{userPass} -->
 	</delete>
 	
 <!-- 패스워드 체크 -->
@@ -41,6 +42,12 @@
 		SELECT COUNT(*) FROM mp_member
 		WHERE userid = #{userId}
 		AND userpass = #{userPass}
+	</select>
+	
+<!-- id 중복체크 --> <!-- 아이디있으면1 없으면0 -->
+	<select id="idChk" resultType="int">
+		SELECT COUNT(*) FROM mp_member
+		WHERE userid = #{userId}
 	</select>
 	
 </mapper>
